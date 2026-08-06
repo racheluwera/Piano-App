@@ -1,25 +1,65 @@
 "use client"
-
+import { useEffect, useRef } from "react";
 import * as Tone from "tone";
 import PianoKey from "./pianoKey";
-const notes = ["C4","D4","E4","G4","A4", "B4"];
+const whiteKeys = [
+  { note: "C4", label: "Do" },
+  { note: "D4", label: "Re" },
+  { note: "E4", label: "Mi" },
+  { note: "F4", label: "Fa" },
+  { note: "G4", label: "Sol" },
+  { note: "A4", label: "La" },
+  { note: "B4", label: "Ti" },
+];
 
-const synth = new Tone.Synth().toDestination();
+const blackKeys = [
+  { note: "C#4" },
+  { note: "D#4" },
+  { note: "F#4" },
+  { note: "G#4" },
+  { note: "A#4" },
+];
 
-export default function Piano(){
-    async function playNote(note: string){
-        await Tone.start();
-        synth.triggerAttackRelease(note,"8n");
+const keyMap: Record<string, string> = {
+  a: "C4", s: "D4", d: "E4", f: "F4", g: "G4", h: "A4", j: "B4",
+  w: "C#4", e: "D#4", t: "F#4", y: "G#4", u: "A#4",
+};
 
+export default function Piano() {
+  const synthRef = useRef<Tone.Synth | null>(null);
+
+  async function playNote(note: string) {
+    await Tone.start();
+    if (!synthRef.current) synthRef.current = new Tone.Synth().toDestination();
+    synthRef.current.triggerAttackRelease(note, "8n");
+  }
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      const note = keyMap[event.key.toLowerCase()];
+
+      if (note) {
+        playNote(note);
+      }
     }
-    return(
-        <div className= "flex justify-center gap-1 mt-10">
-            {notes.map((note) => (
-                <PianoKey
-                key={note}
-                note={note}
-                onPlay={playNote} />
-            ))}
-        </div>
-    );
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  return (
+   <div className="relative flex">
+  {whiteKeys.map((key) => (
+    <PianoKey
+      key={key.note}
+      note={key.note}
+      label={key.label}
+      onPlay={playNote}
+    />
+  ))}
+</div>
+  );
 }
