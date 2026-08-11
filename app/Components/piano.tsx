@@ -33,11 +33,9 @@ export default function Piano() {
     if (!synthRef.current) synthRef.current = new Tone.Synth().toDestination();
     synthRef.current.triggerAttackRelease(note, "8n");
   }
-
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       const note = keyMap[event.key.toLowerCase()];
-
       if (note) {
         playNote(note);
       }

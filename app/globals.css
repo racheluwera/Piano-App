@@ -1,26 +1,215 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #1a1008;
+  --surface: #2a1f0e;
+  --surface2: #3a2c18;
+  --accent: #c8a96e;
+  --accent2: #e8c98e;
+  --text: #f5ead8;
+  --text-muted: #9a8a6a;
+  --white-key: #f8f4ee;
+  --white-key-active: #c8a96e;
+  --white-key-hover: #ede8de;
+  --black-key: #1a1008;
+  --black-key-active: #8b6914;
+  --black-key-hover: #2e2010;
+  --shadow: rgba(0,0,0,0.6);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  overscroll-behavior: none;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+
+/* ── Piano wood cabinet ── */
+.piano-cabinet {
+  background: linear-gradient(180deg, #3d2b10 0%, #2a1f0e 40%, #1e1508 100%);
+  border: 2px solid #5a3e1a;
+  border-radius: 16px;
+  box-shadow:
+    0 0 0 1px #7a5a2a,
+    0 8px 32px rgba(0,0,0,0.8),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+  padding: 24px 28px 28px;
+}
+
+/* ── Keys container ── */
+.keys-wrapper {
+  background: linear-gradient(180deg, #111 0%, #1a1008 100%);
+  border-radius: 0 0 12px 12px;
+  padding: 0 12px 16px;
+  box-shadow: inset 0 4px 12px rgba(0,0,0,0.6);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.keys-wrapper::-webkit-scrollbar { display: none; }
+
+/* ── White key ── */
+.key-white {
+  position: relative;
+  background: linear-gradient(180deg, #f0ebe0 0%, var(--white-key) 60%, #e8e0d0 100%);
+  border: 1px solid #c8b89a;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow:
+    2px 0 0 rgba(0,0,0,0.15),
+    0 4px 8px rgba(0,0,0,0.3),
+    inset 0 -2px 4px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: background 80ms ease, transform 60ms ease, box-shadow 60ms ease;
+}
+.key-white:hover {
+  background: linear-gradient(180deg, #f5f0e8 0%, var(--white-key-hover) 100%);
+}
+.key-white.active {
+  background: linear-gradient(180deg, #d4a84a 0%, var(--white-key-active) 100%);
+  transform: translateY(2px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* ── Black key ── */
+.key-black {
+  position: absolute;
+  background: linear-gradient(180deg, #2a2010 0%, var(--black-key) 50%, #0a0804 100%);
+  border-radius: 0 0 6px 6px;
+  box-shadow:
+    1px 0 0 #3a2a10,
+    -1px 0 0 #3a2a10,
+    0 6px 12px rgba(0,0,0,0.8),
+    inset 0 -2px 4px rgba(255,255,255,0.05);
+  cursor: pointer;
+  z-index: 10;
+  transition: background 80ms ease, transform 60ms ease, box-shadow 60ms ease;
+}
+.key-black:hover {
+  background: linear-gradient(180deg, #3a2e18 0%, var(--black-key-hover) 100%);
+}
+.key-black.active {
+  background: linear-gradient(180deg, #a07820 0%, var(--black-key-active) 100%);
+  transform: translateY(2px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.8);
+}
+
+/* ── Controls panel ── */
+.controls-panel {
+  background: linear-gradient(180deg, #2e2210 0%, #221a0c 100%);
+  border: 1px solid #4a3418;
+  border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 16px rgba(0,0,0,0.4);
+}
+
+/* ── Knob-style slider ── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface2);
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(200,169,110,0.5);
+  cursor: pointer;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 10px rgba(200,169,110,0.8);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  cursor: pointer;
+}
+
+/* ── Pill button ── */
+.pill-btn {
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: all 150ms ease;
+  border: 1px solid transparent;
+}
+.pill-btn.inactive {
+  background: var(--surface2);
+  color: var(--text-muted);
+  border-color: #4a3418;
+}
+.pill-btn.inactive:hover {
+  background: #4a3418;
+  color: var(--accent);
+}
+.pill-btn.active-btn {
+  background: var(--accent);
+  color: #1a1008;
+  box-shadow: 0 0 12px rgba(200,169,110,0.4);
+}
+
+/* ── Welcome overlay ── */
+.welcome-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,8,4,0.92);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 400ms ease;
+}
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes fadeOut { from { opacity: 1 } to { opacity: 0; pointer-events: none } }
+.welcome-overlay.hiding { animation: fadeOut 400ms ease forwards; }
+
+/* ── Note ripple ── */
+@keyframes ripple {
+  0%   { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+.note-ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(200,169,110,0.35);
+  animation: ripple 400ms ease-out forwards;
+  pointer-events: none;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .piano-cabinet { padding: 14px 10px 18px; border-radius: 12px; }
+  .keys-wrapper  { padding: 0 6px 12px; }
 }
