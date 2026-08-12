@@ -8,40 +8,37 @@ export default function NoteDisplay({ activeNotes }: Props) {
 
   useEffect(() => {
     const notes = Array.from(activeNotes);
-    if (notes.length === 0) return;
-    const id = Date.now().toString();
-    const tagged = notes.map((n) => `${n}__${id}`);
-    setShown((prev) => [...prev.slice(-6), ...tagged]);
+    if (!notes.length) return;
+    const tagged = notes.map((n) => `${n}__${Date.now()}`);
+    setShown((prev) => [...prev.slice(-4), ...tagged]);
     const t = setTimeout(() => {
       setShown((prev) => prev.filter((x) => !tagged.includes(x)));
-    }, 900);
+    }, 800);
     return () => clearTimeout(t);
   }, [activeNotes]);
 
   return (
-    <div style={{
-      height: 40, display: "flex", alignItems: "center",
-      justifyContent: "center", gap: 8, overflow: "hidden",
-    }}>
-      {shown.map((tagged) => {
-        const note = tagged.split("__")[0];
-        return (
-          <span
-            key={tagged}
-            style={{
-              color: "#c8a96e", fontWeight: 700, fontSize: "1rem",
-              letterSpacing: "0.05em",
-              animation: "floatUp 900ms ease-out forwards",
-            }}
-          >
-            {note}
-          </span>
-        );
-      })}
+    <div style={{ display: "flex", gap: 6, alignItems: "center", minWidth: 80 }}>
+      {shown.map((tagged) => (
+        <span
+          key={tagged}
+          style={{
+            color: "#90c890",
+            fontFamily: "Courier New, monospace",
+            fontWeight: 700,
+            fontSize: "0.85rem",
+            letterSpacing: "0.05em",
+            animation: "fadeNote 800ms ease-out forwards",
+          }}
+        >
+          {tagged.split("__")[0]}
+        </span>
+      ))}
       <style>{`
-        @keyframes floatUp {
-          0%   { opacity: 1; transform: translateY(0); }
-          100% { opacity: 0; transform: translateY(-28px); }
+        @keyframes fadeNote {
+          0%   { opacity: 1; }
+          70%  { opacity: 1; }
+          100% { opacity: 0; }
         }
       `}</style>
     </div>

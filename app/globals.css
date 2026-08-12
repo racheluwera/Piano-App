@@ -1,27 +1,30 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #1a1008;
-  --surface: #2a1f0e;
-  --surface2: #3a2c18;
-  --accent: #c8a96e;
-  --accent2: #e8c98e;
-  --text: #f5ead8;
-  --text-muted: #9a8a6a;
-  --white-key: #f8f4ee;
-  --white-key-active: #c8a96e;
-  --white-key-hover: #ede8de;
-  --black-key: #1a1008;
-  --black-key-active: #8b6914;
-  --black-key-hover: #2e2010;
-  --shadow: rgba(0,0,0,0.6);
+  --bg: #b0b8c1;
+  --body-dark: #1a1a1a;
+  --body-mid: #222222;
+  --body-light: #2e2e2e;
+  --panel-bg: #1c1c1c;
+  --wood-left: #3d1f08;
+  --wood-right: #3d1f08;
+  --btn-bg: #2a2a2a;
+  --btn-active: #cc0000;
+  --btn-blue: #4488ff;
+  --led-bg: #1a2a1a;
+  --led-text: #c8e8c8;
+  --text-label: #aaaaaa;
+  --white-key: #e8e8e8;
+  --white-key-active: #6699ff;
+  --white-key-hover: #f0f0f0;
+  --black-key: #111111;
+  --black-key-active: #4466cc;
 }
 
 @theme inline {
   --color-background: var(--bg);
-  --color-foreground: var(--text);
+  --color-foreground: #ffffff;
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -30,186 +33,287 @@ html, body {
   height: 100%;
   overscroll-behavior: none;
   background: var(--bg);
-  color: var(--text);
   font-family: Arial, Helvetica, sans-serif;
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
 }
 
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--surface); }
-::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+/* ── Top navbar ── */
+.navbar {
+  background: #1a1a1a;
+  border-bottom: 1px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  height: 52px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.navbar-logo-box {
+  width: 32px; height: 32px;
+  background: #333;
+  border: 1px solid #555;
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.navbar-title {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 1.4rem;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+.navbar-auth {
+  color: #aaa;
+  font-size: 0.82rem;
+}
+.navbar-auth a { color: #fff; text-decoration: none; font-weight: 600; }
+.navbar-auth a:hover { text-decoration: underline; }
 
-/* ── Piano wood cabinet ── */
-.piano-cabinet {
-  background: linear-gradient(180deg, #3d2b10 0%, #2a1f0e 40%, #1e1508 100%);
-  border: 2px solid #5a3e1a;
-  border-radius: 16px;
+/* ── Nav links bar ── */
+.navlinks {
+  background: #f0f0f0;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 48px;
+  height: 44px;
+}
+.navlinks a {
+  color: #222;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 4px 0;
+  border-bottom: 2px solid transparent;
+  transition: border-color 150ms;
+}
+.navlinks a:hover, .navlinks a.active { border-bottom-color: #222; }
+
+/* ── Synth body ── */
+.synth-body {
+  background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 30%, #111 100%);
+  border-radius: 8px 8px 0 0;
   box-shadow:
-    0 0 0 1px #7a5a2a,
-    0 8px 32px rgba(0,0,0,0.8),
-    inset 0 1px 0 rgba(255,255,255,0.08);
-  padding: 24px 28px 28px;
+    0 -2px 0 #444,
+    0 8px 40px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  position: relative;
+  width: 100%;
 }
 
-/* ── Keys container ── */
-.keys-wrapper {
-  background: linear-gradient(180deg, #111 0%, #1a1008 100%);
-  border-radius: 0 0 12px 12px;
-  padding: 0 12px 16px;
-  box-shadow: inset 0 4px 12px rgba(0,0,0,0.6);
+/* ── Wood end caps ── */
+.wood-cap {
+  width: 28px;
+  background: linear-gradient(180deg, #6b3a18 0%, #3d1f08 50%, #2a1408 100%);
+  border-radius: 4px;
+  box-shadow: inset -2px 0 4px rgba(0,0,0,0.4);
+  flex-shrink: 0;
+}
+
+/* ── Control panel row ── */
+.control-panel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px 10px;
+  background: linear-gradient(180deg, #252525 0%, #1e1e1e 100%);
+  border-bottom: 1px solid #111;
+}
+
+/* ── Synth button (square backlit) ── */
+.synth-btn-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.synth-btn-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #888;
+}
+.synth-btn {
+  width: 38px; height: 38px;
+  background: linear-gradient(180deg, #2e2e2e 0%, #1e1e1e 100%);
+  border: 1px solid #444;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+  transition: all 80ms ease;
+  position: relative;
+}
+.synth-btn:hover { background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%); }
+.synth-btn:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+.synth-btn .led {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #cc0000;
+  box-shadow: 0 0 6px #cc0000;
+}
+.synth-btn .led.blue { background: #4488ff; box-shadow: 0 0 6px #4488ff; }
+.synth-btn .led.off  { background: #333; box-shadow: none; }
+.synth-btn .led.on   { background: #cc0000; box-shadow: 0 0 8px #ff2200; }
+
+/* ── LED display ── */
+.led-display {
+  background: linear-gradient(180deg, #0a1a0a 0%, #0d200d 100%);
+  border: 2px solid #111;
+  border-radius: 4px;
+  box-shadow:
+    inset 0 2px 8px rgba(0,0,0,0.8),
+    0 0 0 1px #333,
+    0 0 16px rgba(0,80,0,0.2);
+  padding: 8px 20px;
+  min-width: 160px;
+  text-align: center;
+}
+.led-display-text {
+  font-family: "Courier New", monospace;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  color: #90c890;
+  text-shadow: 0 0 8px #00ff00, 0 0 16px rgba(0,200,0,0.4);
+}
+
+/* ── Divider line between button groups ── */
+.panel-divider {
+  width: 1px;
+  height: 48px;
+  background: linear-gradient(180deg, transparent, #444, transparent);
+  flex-shrink: 0;
+}
+
+/* ── Model badge ── */
+.model-badge {
+  padding: 6px 20px 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.model-name {
+  font-style: italic;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ccc;
+  letter-spacing: 0.02em;
+}
+.model-sub {
+  font-size: 0.72rem;
+  color: #666;
+  letter-spacing: 0.08em;
+}
+
+/* ── Keys section ── */
+.keys-section {
+  background: #111;
+  padding: 0 20px 20px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
-.keys-wrapper::-webkit-scrollbar { display: none; }
+.keys-section::-webkit-scrollbar { display: none; }
 
 /* ── White key ── */
 .key-white {
   position: relative;
-  background: linear-gradient(180deg, #f0ebe0 0%, var(--white-key) 60%, #e8e0d0 100%);
-  border: 1px solid #c8b89a;
+  background: linear-gradient(180deg, #d8d8d8 0%, #e8e8e8 15%, #f0f0f0 100%);
+  border: 1px solid #999;
   border-top: none;
-  border-radius: 0 0 8px 8px;
+  border-radius: 0 0 5px 5px;
   box-shadow:
-    2px 0 0 rgba(0,0,0,0.15),
-    0 4px 8px rgba(0,0,0,0.3),
-    inset 0 -2px 4px rgba(0,0,0,0.1);
+    1px 0 0 #bbb,
+    0 4px 6px rgba(0,0,0,0.4),
+    inset 0 -1px 3px rgba(0,0,0,0.1);
   cursor: pointer;
-  transition: background 80ms ease, transform 60ms ease, box-shadow 60ms ease;
+  transition: background 60ms ease, transform 50ms ease;
 }
 .key-white:hover {
-  background: linear-gradient(180deg, #f5f0e8 0%, var(--white-key-hover) 100%);
+  background: linear-gradient(180deg, #e0e0e0 0%, #f5f5f5 100%);
 }
 .key-white.active {
-  background: linear-gradient(180deg, #d4a84a 0%, var(--white-key-active) 100%);
+  background: linear-gradient(180deg, #4477dd 0%, #6699ff 100%);
   transform: translateY(2px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
 }
 
 /* ── Black key ── */
 .key-black {
   position: absolute;
-  background: linear-gradient(180deg, #2a2010 0%, var(--black-key) 50%, #0a0804 100%);
-  border-radius: 0 0 6px 6px;
+  background: linear-gradient(180deg, #2a2a2a 0%, #111 60%, #080808 100%);
+  border-radius: 0 0 4px 4px;
   box-shadow:
-    1px 0 0 #3a2a10,
-    -1px 0 0 #3a2a10,
-    0 6px 12px rgba(0,0,0,0.8),
-    inset 0 -2px 4px rgba(255,255,255,0.05);
+    1px 0 0 #333,
+    -1px 0 0 #333,
+    0 5px 10px rgba(0,0,0,0.9),
+    inset 0 -1px 3px rgba(255,255,255,0.04);
   cursor: pointer;
   z-index: 10;
-  transition: background 80ms ease, transform 60ms ease, box-shadow 60ms ease;
+  transition: background 60ms ease, transform 50ms ease;
 }
 .key-black:hover {
-  background: linear-gradient(180deg, #3a2e18 0%, var(--black-key-hover) 100%);
+  background: linear-gradient(180deg, #333 0%, #1a1a1a 100%);
 }
 .key-black.active {
-  background: linear-gradient(180deg, #a07820 0%, var(--black-key-active) 100%);
+  background: linear-gradient(180deg, #3355bb 0%, #4466cc 100%);
   transform: translateY(2px);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.8);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.9);
 }
-
-/* ── Controls panel ── */
-.controls-panel {
-  background: linear-gradient(180deg, #2e2210 0%, #221a0c 100%);
-  border: 1px solid #4a3418;
-  border-radius: 12px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 16px rgba(0,0,0,0.4);
-}
-
-/* ── Knob-style slider ── */
-input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--surface2);
-  outline: none;
-  cursor: pointer;
-}
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 6px rgba(200,169,110,0.5);
-  cursor: pointer;
-  transition: transform 150ms ease, box-shadow 150ms ease;
-}
-input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-  box-shadow: 0 0 10px rgba(200,169,110,0.8);
-}
-input[type="range"]::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--accent);
-  border: none;
-  cursor: pointer;
-}
-
-/* ── Pill button ── */
-.pill-btn {
-  padding: 4px 14px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  transition: all 150ms ease;
-  border: 1px solid transparent;
-}
-.pill-btn.inactive {
-  background: var(--surface2);
-  color: var(--text-muted);
-  border-color: #4a3418;
-}
-.pill-btn.inactive:hover {
-  background: #4a3418;
-  color: var(--accent);
-}
-.pill-btn.active-btn {
-  background: var(--accent);
-  color: #1a1008;
-  box-shadow: 0 0 12px rgba(200,169,110,0.4);
-}
-
-/* ── Welcome overlay ── */
-.welcome-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(10,8,4,0.92);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  animation: fadeIn 400ms ease;
-}
-@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
-@keyframes fadeOut { from { opacity: 1 } to { opacity: 0; pointer-events: none } }
-.welcome-overlay.hiding { animation: fadeOut 400ms ease forwards; }
 
 /* ── Note ripple ── */
 @keyframes ripple {
-  0%   { transform: scale(0.8); opacity: 0.8; }
-  100% { transform: scale(2.4); opacity: 0; }
+  0%   { transform: scale(0.6); opacity: 0.7; }
+  100% { transform: scale(2); opacity: 0; }
 }
 .note-ripple {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: rgba(200,169,110,0.35);
-  animation: ripple 400ms ease-out forwards;
+  background: rgba(100,150,255,0.4);
+  animation: ripple 350ms ease-out forwards;
   pointer-events: none;
 }
 
+/* ── Welcome overlay ── */
+.welcome-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.88);
+  backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+  animation: fadeIn 350ms ease;
+}
+@keyframes fadeIn  { from { opacity: 0 } to { opacity: 1 } }
+@keyframes fadeOut { from { opacity: 1 } to { opacity: 0; pointer-events: none } }
+.welcome-overlay.hiding { animation: fadeOut 350ms ease forwards; }
+
 /* ── Responsive ── */
 @media (max-width: 640px) {
-  .piano-cabinet { padding: 14px 10px 18px; border-radius: 12px; }
-  .keys-wrapper  { padding: 0 6px 12px; }
+  .control-panel { gap: 8px; padding: 10px 12px 8px; }
+  .synth-btn { width: 30px; height: 30px; }
+  .led-display { min-width: 110px; padding: 6px 12px; }
+  .led-display-text { font-size: 1.1rem; }
+  .navlinks { gap: 20px; }
+  .wood-cap { width: 14px; }
 }
