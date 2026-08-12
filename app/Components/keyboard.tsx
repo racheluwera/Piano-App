@@ -8,23 +8,26 @@ const WHITE_KEY_H = 160;
 const BLACK_KEY_W = 26;
 const BLACK_KEY_H = 100;
 
-// render one full octave of keys
 function OctaveKeys({
-  octave, onPlay, activeNotes,
+  octave, onPlay, activeNotes, showNoteLabels, showKeyHints,
 }: {
-  octave: number; onPlay: (n: string) => void; activeNotes: Set<string>;
+  octave: number;
+  onPlay: (n: string) => void;
+  activeNotes: Set<string>;
+  showNoteLabels: boolean;
+  showKeyHints: boolean;
 }) {
   const totalW = WHITE_NOTES.length * WHITE_KEY_W;
   return (
     <div className="relative" style={{ width: totalW, height: WHITE_KEY_H, flexShrink: 0 }}>
-      {WHITE_NOTES.map((n) => {
+      {WHITE_NOTES.map((n, i) => {
         const note = `${n}${octave}`;
         return (
-          <div key={note} style={{ position: "absolute", left: WHITE_NOTES.indexOf(n) * WHITE_KEY_W, top: 0 }}>
+          <div key={note} style={{ position: "absolute", left: i * WHITE_KEY_W, top: 0 }}>
             <PianoKey
               note={note}
-              label={WHITE_KEY_LABELS[n]}
-              keyHint={WHITE_KEY_HINTS[n]}
+              label={showNoteLabels ? WHITE_KEY_LABELS[n] : ""}
+              keyHint={showKeyHints ? WHITE_KEY_HINTS[n] : ""}
               isActive={activeNotes.has(note)}
               onPlay={onPlay}
               width={WHITE_KEY_W}
@@ -41,7 +44,7 @@ function OctaveKeys({
             <PianoKey
               note={note}
               label=""
-              keyHint={hint}
+              keyHint={showKeyHints ? hint : ""}
               isBlack
               isActive={activeNotes.has(note)}
               onPlay={onPlay}
@@ -59,17 +62,22 @@ type Props = {
   octave: Octave;
   onPlay: (note: string) => void;
   activeNotes: Set<string>;
+  showNoteLabels: boolean;
+  showKeyHints: boolean;
 };
 
-// show 3 octaves: current-1, current, current+1
-export default function Keyboard({ octave, onPlay, activeNotes }: Props) {
+export default function Keyboard({ octave, onPlay, activeNotes, showNoteLabels, showKeyHints }: Props) {
   const octaves = [Math.max(2, octave - 1), octave, Math.min(6, octave + 1)];
-
   return (
     <div className="keys-section">
       <div style={{ display: "flex", gap: 1 }}>
         {octaves.map((o) => (
-          <OctaveKeys key={o} octave={o} onPlay={onPlay} activeNotes={activeNotes} />
+          <OctaveKeys
+            key={o} octave={o} onPlay={onPlay}
+            activeNotes={activeNotes}
+            showNoteLabels={showNoteLabels}
+            showKeyHints={showKeyHints}
+          />
         ))}
       </div>
     </div>

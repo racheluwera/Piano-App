@@ -9,7 +9,7 @@ import NoteDisplay from "./Components/noteDisplay";
 const NAV_LINKS = ["PLAY", "SONGS", "VIDEOS", "ABOUT", "LEARN"];
 
 export default function Home() {
-  const [started, setStarted] = useState(false);
+  const [started, setStarted]   = useState(false);
   const [activeNav, setActiveNav] = useState("PLAY");
 
   const {
@@ -19,12 +19,23 @@ export default function Home() {
     sustain, setSustain,
     instrument, setInstrument,
     activeNotes,
+    showNoteLabels, setShowNoteLabels,
+    showKeyHints,   setShowKeyHints,
+    scale,          setScale,
+    transpose,      setTranspose,
+    mapping,        setMapping,
+    metronome,      setMetronome,
+    tempo,          setTempo,
+    isRecording,    toggleRecording,
+    isAutoPlay,     setIsAutoPlay,
+    gameMode,       setGameMode,
+    songsMode,      setSongsMode,
+    isPlaying,      togglePlayback,
   } = usePiano();
 
   const [volumeVal, setVolumeVal] = useState(0);
   const [reverbVal, setReverbVal] = useState(0);
 
-  // LED display shows last active note or "PLAY"
   const lastNote = Array.from(activeNotes).at(-1) ?? "PLAY";
 
   return (
@@ -40,9 +51,7 @@ export default function Home() {
             <div>ARTS</div>
           </div>
         </div>
-
         <span className="navbar-title">Virtual Piano</span>
-
         <span className="navbar-auth">
           <a href="#">Log In</a> or <a href="#">Register</a>
         </span>
@@ -52,8 +61,7 @@ export default function Home() {
       <div className="navlinks">
         {NAV_LINKS.map((link) => (
           <a
-            key={link}
-            href="#"
+            key={link} href="#"
             className={activeNav === link ? "active" : ""}
             onClick={(e) => { e.preventDefault(); setActiveNav(link); }}
           >
@@ -66,45 +74,58 @@ export default function Home() {
       <main style={{
         background: "#b0b8c1",
         minHeight: "calc(100dvh - 96px)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
+        display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
         padding: "32px 16px",
       }}>
-
         {loading ? (
-          <div style={{ color: "#333", fontSize: "1.2rem", fontWeight: 700 }}>
+          <div style={{ color: "#333", fontSize: "1.1rem", fontWeight: 700 }}>
             Loading piano...
           </div>
         ) : (
-          /* ── Synth body with wood end caps ── */
-          <div style={{ display: "flex", alignItems: "stretch", width: "100%", maxWidth: 1100 }}>
+          <div style={{ display: "flex", alignItems: "stretch", width: "100%", maxWidth: 1200 }}>
 
             {/* Left wood cap */}
             <div className="wood-cap" style={{ borderRadius: "8px 0 0 8px" }} />
 
-            {/* Main synth body */}
-            <div className="synth-body" style={{ flex: 1 }}>
+            {/* Synth body */}
+            <div className="synth-body" style={{ flex: 1, overflow: "hidden" }}>
 
-              {/* Control panel */}
+              {/* Full control panel */}
               <Controls
-                volume={volumeVal}
-                reverb={reverbVal}
-                octave={octave}
                 sustain={sustain}
                 instrument={instrument}
-                octaves={(config?.octaves ?? [2,3,4,5,6]) as number[]}
                 instruments={config?.instruments ?? []}
                 displayText={lastNote.replace("#", "♯")}
-                onVolumeChange={(v) => { setVolumeVal(v); setVolume(v); }}
-                onReverbChange={(v) => { setReverbVal(v); setReverb(v); }}
-                onOctaveChange={(o) => setOctave(o as never)}
+                showNoteLabels={showNoteLabels}
+                showKeyHints={showKeyHints}
+                scale={scale}
+                transpose={transpose}
+                mapping={mapping}
+                metronome={metronome}
+                tempo={tempo}
+                isRecording={isRecording}
+                isPlaying={isPlaying}
+                isAutoPlay={isAutoPlay}
+                gameMode={gameMode}
+                songsMode={songsMode}
                 onSustainToggle={() => setSustain(!sustain)}
                 onInstrumentChange={(i) => setInstrument(i as never)}
+                onNotesToggle={() => setShowNoteLabels(!showNoteLabels)}
+                onKeysToggle={() => setShowKeyHints(!showKeyHints)}
+                onScaleChange={setScale}
+                onTransposeChange={setTranspose}
+                onMappingChange={setMapping}
+                onMetronomeToggle={() => setMetronome(!metronome)}
+                onTempoChange={setTempo}
+                onRecordToggle={toggleRecording}
+                onPlayToggle={togglePlayback}
+                onAutoToggle={() => setIsAutoPlay(!isAutoPlay)}
+                onGameToggle={() => setGameMode(!gameMode)}
+                onSongsToggle={() => setSongsMode(!songsMode)}
               />
 
-              {/* Model badge */}
+              {/* Model badge row */}
               <div className="model-badge">
                 <span className="model-name">A-23</span>
                 <span className="model-sub">Virtual Piano</span>
@@ -113,7 +134,13 @@ export default function Home() {
               </div>
 
               {/* Keyboard */}
-              <Keyboard octave={octave} onPlay={playNote} activeNotes={activeNotes} />
+              <Keyboard
+                octave={octave}
+                onPlay={playNote}
+                activeNotes={activeNotes}
+                showNoteLabels={showNoteLabels}
+                showKeyHints={showKeyHints}
+              />
 
             </div>
 
@@ -123,7 +150,7 @@ export default function Home() {
         )}
 
         <p style={{
-          marginTop: 16, color: "#888", fontSize: "0.72rem",
+          marginTop: 14, color: "#888", fontSize: "0.7rem",
           letterSpacing: "0.08em", textTransform: "uppercase",
         }}>
           Keyboard · Touch · Click — any platform
