@@ -26,7 +26,7 @@ export default function Welcome({ onStart }: Props) {
         }}>
           My Piano
         </h1>
-
+        
         <p style={{ color: "#9a8a6a", fontSize: "0.95rem", lineHeight: 1.6, margin: 0 }}>
           A real piano in your browser — play with your keyboard,
           tap on mobile, or click on desktop. No download needed.
@@ -39,10 +39,10 @@ export default function Welcome({ onStart }: Props) {
           display: "flex", flexDirection: "column", gap: 8,
           width: "100%",
         }}>
-          <Row icon="⌨️" text="Keys A–J for white notes, W E T Y U for black" />
-          <Row icon="👆" text="Tap or click any key to play" />
-          <Row icon="🎛️" text="Switch sounds, octave, reverb & sustain above" />
-          <Row icon="📱" text="Works on phone, tablet and desktop" />
+          <Row icon="⌨" text="Keys A–J for white notes, W E T Y U for black" />
+          <Row icon="" text="Tap or click any key to play" />
+          <Row icon="" text="Switch sounds, octave, reverb & sustain above" />
+          <Row icon="" text="Works on phone, tablet and desktop" />
         </div>
 
         <button

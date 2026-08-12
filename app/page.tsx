@@ -5,12 +5,16 @@ import Keyboard from "./Components/keyboard";
 import Controls from "./Components/controls";
 import Welcome from "./Components/welcome";
 import NoteDisplay from "./Components/noteDisplay";
+import SongsPanel from "./Components/songsPanel";
+import PdfViewer from "./Components/pdfViewer";
+import type { Song } from "./Components/songsPanel";
 
 const NAV_LINKS = ["PLAY", "SONGS", "VIDEOS", "ABOUT", "LEARN"];
 
 export default function Home() {
   const [started, setStarted]   = useState(false);
   const [activeNav, setActiveNav] = useState("PLAY");
+  const [viewingSong, setViewingSong] = useState<Song | null>(null);
 
   const {
     config, loading,
@@ -42,6 +46,12 @@ export default function Home() {
     <>
       {!started && <Welcome onStart={() => setStarted(true)} />}
 
+      <SongsPanel
+        open={songsMode}
+        onClose={() => setSongsMode(false)}
+        onView={(song) => { setViewingSong(song); setSongsMode(false); }}
+      />
+
       {/* ── Top navbar ── */}
       <nav className="navbar">
         <div className="navbar-logo">
@@ -63,7 +73,11 @@ export default function Home() {
           <a
             key={link} href="#"
             className={activeNav === link ? "active" : ""}
-            onClick={(e) => { e.preventDefault(); setActiveNav(link); }}
+            onClick={(e) => {
+              e.preventDefault();
+              setActiveNav(link);
+              if (link === "SONGS") setSongsMode(true);
+            }}
           >
             {link}
           </a>
@@ -83,13 +97,21 @@ export default function Home() {
             Loading piano...
           </div>
         ) : (
-          <div style={{ display: "flex", alignItems: "stretch", width: "100%", maxWidth: 1200 }}>
+          <div style={{
+            display: "flex",
+            alignItems: "stretch",
+            width: "100%",
+            maxWidth: viewingSong ? 1700 : 1200,
+            justifyContent: "center",
+            gap: viewingSong ? 18 : 0,
+          }}>
 
-            {/* Left wood cap */}
-            <div className="wood-cap" style={{ borderRadius: "8px 0 0 8px" }} />
+            <div style={{ display: "flex", alignItems: "stretch" }}>
+              {/* Left wood cap */}
+              <div className="wood-cap" style={{ borderRadius: "8px 0 0 8px" }} />
 
-            {/* Synth body */}
-            <div className="synth-body" style={{ flex: 1, overflow: "hidden" }}>
+              {/* Synth body */}
+              <div className="synth-body" style={{ overflow: "hidden" }}>
 
               {/* Full control panel */}
               <Controls
@@ -146,6 +168,11 @@ export default function Home() {
 
             {/* Right wood cap */}
             <div className="wood-cap" style={{ borderRadius: "0 8px 8px 0" }} />
+            </div>
+
+            {viewingSong && (
+              <PdfViewer song={viewingSong} onClose={() => setViewingSong(null)} />
+            )}
           </div>
         )}
 
