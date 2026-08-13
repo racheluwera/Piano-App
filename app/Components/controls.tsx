@@ -4,14 +4,10 @@ import type { ScaleType, MappingType } from "../hooks/usePiano";
 type Instrument = { id: string; icon: string; label: string };
 
 type Props = {
-  // existing
   sustain: boolean;
   instrument: string;
   instruments: Instrument[];
   displayText: string;
-  onSustainToggle: () => void;
-  onInstrumentChange: (i: string) => void;
-  // new
   showNoteLabels: boolean;
   showKeyHints: boolean;
   scale: ScaleType;
@@ -24,6 +20,14 @@ type Props = {
   isAutoPlay: boolean;
   gameMode: boolean;
   songsMode: boolean;
+  // audio quality
+  volume: number;
+  reverbAmt: number;
+  tone: number;
+  velocitySens: number;
+  muted: boolean;
+  onSustainToggle: () => void;
+  onInstrumentChange: (i: string) => void;
   onNotesToggle: () => void;
   onKeysToggle: () => void;
   onScaleChange: (s: ScaleType) => void;
@@ -36,282 +40,210 @@ type Props = {
   onAutoToggle: () => void;
   onGameToggle: () => void;
   onSongsToggle: () => void;
+  onVolumeChange: (v: number) => void;
+  onReverbChange: (v: number) => void;
+  onToneChange: (v: number) => void;
+  onVelocityChange: (v: number) => void;
+  onMuteToggle: () => void;
 };
 
-/* ── Reusable square synth button with LED dot ── */
-function SynthBtn({
-  label, active, ledColor = "red", onClick,
+/* ── LED-style toggle button ── */
+function Btn({
+  label, active, color = "red", onClick,
 }: {
-  label?: string;
+  label: string;
   active?: boolean;
-  ledColor?: "red" | "blue" | "green";
+  color?: "red" | "blue" | "amber";
   onClick?: () => void;
 }) {
-  const ledColors = {
-    red:   active ? "#ff2200" : "#330000",
-    blue:  active ? "#4488ff" : "#001133",
-    green: active ? "#00cc44" : "#003311",
-  };
-  const glowColors = {
-    red:   "rgba(255,34,0,0.7)",
-    blue:  "rgba(68,136,255,0.7)",
-    green: "rgba(0,204,68,0.7)",
-  };
+  const led = {
+    red:   { on: "#ff3300", off: "#2a0800", glow: "rgba(255,51,0,0.8)" },
+    blue:  { on: "#3399ff", off: "#001833", glow: "rgba(51,153,255,0.8)" },
+    amber: { on: "#ffaa00", off: "#1a0e00", glow: "rgba(255,170,0,0.8)" },
+  }[color];
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-      {label && (
-        <span style={{
-          fontSize: 8, fontWeight: 700, letterSpacing: "0.08em",
-          color: "#888", textTransform: "uppercase",
-        }}>
-          {label}
-        </span>
-      )}
-      <button
-        onClick={onClick}
-        style={{
-          width: 36, height: 36,
-          background: "linear-gradient(180deg,#2e2e2e 0%,#1a1a1a 100%)",
-          border: "1px solid #444",
-          borderRadius: 4,
-          cursor: "pointer",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 2px 4px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05)",
-          transition: "all 80ms",
-          position: "relative",
-        }}
-      >
-        <span style={{
-          width: 9, height: 9, borderRadius: "50%",
-          background: ledColors[ledColor],
-          boxShadow: active ? `0 0 7px ${glowColors[ledColor]}` : "none",
-          transition: "all 150ms",
-          display: "block",
-        }} />
-      </button>
-    </div>
+    <button onClick={onClick} className="ctrl-btn" data-active={active ? "true" : undefined}>
+      <span className="ctrl-led" style={{
+        background: active ? led.on : led.off,
+        boxShadow: active ? `0 0 6px ${led.glow}` : "none",
+      }} />
+      <span className="ctrl-btn-label">{label}</span>
+    </button>
   );
 }
 
-/* ── Diamond-shaped knob (TRANSPOSE / TEMPO) ── */
-function DiamondKnob({
-  label, subLabels, value, min, max, onChange,
-}: {
-  label: string;
-  subLabels?: [string, string];
-  value: number;
-  min: number;
-  max: number;
+/* ── Compact number stepper ── */
+function Stepper({ label, value, min, max, step = 1, onChange }: {
+  label: string; value: number; min: number; max: number; step?: number;
   onChange: (v: number) => void;
 }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-      <span style={{ fontSize: 8, fontWeight: 700, color: "#888", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-        {label}
-      </span>
-      {/* diamond shape */}
-      <div style={{ position: "relative", width: 44, height: 44 }}>
-        <div style={{
-          position: "absolute", inset: 4,
-          background: "linear-gradient(135deg,#3a3a3a,#1a1a1a)",
-          border: "1px solid #555",
-          transform: "rotate(45deg)",
-          borderRadius: 3,
-          boxShadow: "0 3px 8px rgba(0,0,0,0.7)",
-        }} />
-        <input
-          type="range" min={min} max={max} value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          style={{
-            position: "absolute", inset: 0, opacity: 0,
-            width: "100%", height: "100%", cursor: "pointer", zIndex: 2,
-          }}
-        />
-        <span style={{
-          position: "absolute", inset: 0,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 9, fontWeight: 700, color: "#ccc", zIndex: 1,
-          pointerEvents: "none",
-        }}>
-          {value > 0 ? `+${value}` : value}
-        </span>
+    <div className="ctrl-stepper">
+      <span className="ctrl-stepper-label">{label}</span>
+      <div className="ctrl-stepper-row">
+        <button onClick={() => onChange(Math.max(min, value - step))}>−</button>
+        <span>{value > 0 && label === "TRANSPOSE" ? `+${value}` : value}</span>
+        <button onClick={() => onChange(Math.min(max, value + step))}>+</button>
       </div>
-      {subLabels && (
-        <div style={{ display: "flex", gap: 8 }}>
-          {subLabels.map((s) => (
-            <span key={s} style={{ fontSize: 7, color: "#666", letterSpacing: "0.06em" }}>{s}</span>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
 
-/* ── Vertical divider ── */
-function Divider() {
+/* ── Audio slider ── */
+function AudioSlider({ label, value, min, max, step, format, onChange }: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  format: (v: number) => string;
+  onChange: (v: number) => void;
+}) {
   return (
-    <div style={{
-      width: 1, alignSelf: "stretch",
-      background: "linear-gradient(180deg,transparent,#444,transparent)",
-      margin: "0 6px", flexShrink: 0,
-    }} />
+    <div className="audio-slider">
+      <div className="audio-slider-header">
+        <span className="audio-slider-label">{label}</span>
+        <span className="audio-slider-value">{format(value)}</span>
+      </div>
+      <input
+        type="range"
+        min={min} max={max} step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="audio-slider-input"
+      />
+    </div>
   );
 }
 
-/* ── Group with top label ── */
-function Group({ label, children }: { label: string; children: React.ReactNode }) {
+/* ── LED display ── */
+function Display({ text }: { text: string }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-      <span style={{
-        fontSize: 8, fontWeight: 700, color: "#777",
-        letterSpacing: "0.1em", textTransform: "uppercase",
-      }}>
-        {label}
-      </span>
-      <div style={{ display: "flex", gap: 5, alignItems: "flex-end" }}>{children}</div>
+    <div className="ctrl-display">
+      <span className="ctrl-display-text">{text || "PLAY"}</span>
+    </div>
+  );
+}
+
+/* ── Section wrapper ── */
+function Section({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="ctrl-section">
+      <span className="ctrl-section-label">{label}</span>
+      <div className="ctrl-section-body">{children}</div>
     </div>
   );
 }
 
 const SCALES: ScaleType[] = ["chromatic", "major", "minor", "pentatonic"];
+const SCALE_SHORT: Record<ScaleType, string> = {
+  chromatic: "CHR", major: "MAJ", minor: "MIN", pentatonic: "PEN",
+};
 
 export default function Controls({
   sustain, instrument, instruments, displayText,
   showNoteLabels, showKeyHints, scale, transpose, mapping,
   metronome, tempo, isRecording, isPlaying, isAutoPlay, gameMode, songsMode,
+  volume, reverbAmt, tone, velocitySens, muted,
   onSustainToggle, onInstrumentChange,
   onNotesToggle, onKeysToggle, onScaleChange, onTransposeChange, onMappingChange,
   onMetronomeToggle, onTempoChange, onRecordToggle, onPlayToggle,
   onAutoToggle, onGameToggle, onSongsToggle,
+  onVolumeChange, onReverbChange, onToneChange, onVelocityChange, onMuteToggle,
 }: Props) {
   return (
-    <div style={{
-      display: "flex", alignItems: "center", flexWrap: "wrap",
-      gap: 6, padding: "14px 18px 12px",
-      background: "linear-gradient(180deg,#252525 0%,#1c1c1c 100%)",
-      borderBottom: "1px solid #111",
-    }}>
+    <div className="ctrl-panel">
 
-      {/* ── SCALES ── */}
-      <Group label="SCALES">
-        {SCALES.map((s) => (
-          <SynthBtn key={s} label={s.slice(0,3).toUpperCase()} active={scale === s} onClick={() => onScaleChange(s)} />
-        ))}
-      </Group>
-
-      <Divider />
-
-      {/* ── NOTES ── */}
-      <Group label="NOTES">
-        <SynthBtn active={showNoteLabels} onClick={onNotesToggle} />
-      </Group>
-
-      <Divider />
-
-      {/* ── KEYS ── */}
-      <Group label="KEYS">
-        <SynthBtn active={showKeyHints} onClick={onKeysToggle} />
-      </Group>
-
-      {/* ── MAPPING ── */}
-      <Group label="MAPPING">
-        <SynthBtn label="MAX"  active={mapping === "max"}  onClick={() => onMappingChange("max")} />
-        <SynthBtn label="REAL" active={mapping === "real"} onClick={() => onMappingChange("real")} />
-      </Group>
-
-      {/* ── TRANSPOSE knob ── */}
-      <DiamondKnob
-        label="TRANSPOSE"
-        subLabels={["MAX", "REAL"]}
-        value={transpose}
-        min={-12} max={12}
-        onChange={onTransposeChange}
-      />
-
-      <Divider />
-
-      {/* ── SUSTAIN ── */}
-      <Group label="SUSTAIN">
-        <SynthBtn active={sustain} ledColor="blue" onClick={onSustainToggle} />
-      </Group>
-
-      <Divider />
-
-      {/* ── SOUNDS ── */}
-      <Group label="SOUNDS">
-        {instruments.map((t) => (
-          <SynthBtn
-            key={t.id}
-            label={t.label.slice(0,3).toUpperCase()}
-            active={instrument === t.id}
-            onClick={() => onInstrumentChange(t.id)}
-          />
-        ))}
-      </Group>
-
-      <Divider />
-
-      {/* ── LED DISPLAY ── */}
-      <div style={{ flex: 1, display: "flex", justifyContent: "center", minWidth: 140 }}>
-        <div style={{
-          background: "linear-gradient(180deg,#0a1a0a,#0d200d)",
-          border: "2px solid #0a0a0a",
-          borderRadius: 4, padding: "8px 18px",
-          boxShadow: "inset 0 2px 8px rgba(0,0,0,0.9), 0 0 0 1px #333, 0 0 20px rgba(0,60,0,0.3)",
-        }}>
-          <div style={{
-            fontFamily: "Courier New, monospace",
-            fontSize: "1.5rem", fontWeight: 700,
-            letterSpacing: "0.2em", color: "#90c890",
-            textShadow: "0 0 8px #00ff00, 0 0 20px rgba(0,200,0,0.3)",
-            minWidth: 100, textAlign: "center",
-          }}>
-            {displayText || "PLAY"}
-          </div>
-        </div>
+      {/* ── ROW 1: primary controls ── */}
+      <div className="ctrl-row">
+        <Section label="SOUND">
+          {instruments.map((t) => (
+            <Btn key={t.id} label={t.label.slice(0, 3).toUpperCase()}
+              active={instrument === t.id} color="amber"
+              onClick={() => onInstrumentChange(t.id)} />
+          ))}
+        </Section>
+        <div className="ctrl-divider" />
+        <Section label="SCALE">
+          {SCALES.map((s) => (
+            <Btn key={s} label={SCALE_SHORT[s]} active={scale === s} onClick={() => onScaleChange(s)} />
+          ))}
+        </Section>
+        <div className="ctrl-divider" />
+        <Section label="VIEW">
+          <Btn label="NOTES" active={showNoteLabels} color="blue" onClick={onNotesToggle} />
+          <Btn label="KEYS"  active={showKeyHints}   color="blue" onClick={onKeysToggle} />
+        </Section>
+        <div className="ctrl-divider" />
+        <Section label="SUSTAIN">
+          <Btn label={sustain ? "ON" : "OFF"} active={sustain} color="blue" onClick={onSustainToggle} />
+        </Section>
+        <div className="ctrl-divider" />
+        <Display text={displayText} />
+        <div className="ctrl-divider" />
+        <Section label="MAPPING">
+          <Btn label="MAX"  active={mapping === "max"}  onClick={() => onMappingChange("max")} />
+          <Btn label="REAL" active={mapping === "real"} onClick={() => onMappingChange("real")} />
+        </Section>
+        <div className="ctrl-divider" />
+        <Section label="MODE">
+          <Btn label="AUTO"  active={isAutoPlay} onClick={onAutoToggle} />
+          <Btn label="SONGS" active={songsMode}  onClick={onSongsToggle} />
+          <Btn label="GAME"  active={gameMode}   onClick={onGameToggle} />
+        </Section>
+        <div className="ctrl-divider" />
+        <Section label="RECORD">
+          <Btn label="REC"  active={isRecording} color="red"  onClick={onRecordToggle} />
+          <Btn label="PLAY" active={isPlaying}   color="blue" onClick={onPlayToggle} />
+        </Section>
       </div>
 
-      <Divider />
+      {/* ── ROW 2: tempo / transpose ── */}
+      <div className="ctrl-row ctrl-row-secondary">
+        <Stepper label="TRANSPOSE" value={transpose} min={-12} max={12} onChange={onTransposeChange} />
+        <div className="ctrl-divider" />
+        <Stepper label="TEMPO" value={tempo} min={40} max={240} step={5} onChange={onTempoChange} />
+        <div className="ctrl-divider" />
+        <Section label="METRONOME">
+          <Btn label={metronome ? "ON" : "OFF"} active={metronome} color="amber" onClick={onMetronomeToggle} />
+        </Section>
+      </div>
 
-      {/* ── AUTO ── */}
-      <Group label="AUTO">
-        <SynthBtn active={isAutoPlay} ledColor="red" onClick={onAutoToggle} />
-      </Group>
+      {/* ── ROW 3: audio quality settings ── */}
+      <div className="ctrl-row ctrl-row-audio">
+        <span className="audio-row-title">🎚 AUDIO</span>
 
-      {/* ── SONGS ── */}
-      <Group label="SONGS">
-        <SynthBtn active={songsMode} ledColor="red" onClick={onSongsToggle} />
-      </Group>
+        <AudioSlider
+          label="VOLUME"
+          value={volume} min={-40} max={0} step={1}
+          format={(v) => `${v} dB`}
+          onChange={onVolumeChange}
+        />
+        <AudioSlider
+          label="REVERB"
+          value={Math.round(reverbAmt * 100)} min={0} max={100} step={1}
+          format={(v) => `${v}%`}
+          onChange={(v) => onReverbChange(v / 100)}
+        />
+        <AudioSlider
+          label="TONE"
+          value={Math.round(tone * 10)} min={-10} max={10} step={1}
+          format={(v) => v > 0 ? `+${v}` : `${v}`}
+          onChange={(v) => onToneChange(v / 10)}
+        />
+        <AudioSlider
+          label="VELOCITY"
+          value={Math.round(velocitySens * 100)} min={0} max={100} step={5}
+          format={(v) => `${v}%`}
+          onChange={(v) => onVelocityChange(v / 100)}
+        />
 
-      {/* ── GAME ── */}
-      <Group label="GAME">
-        <SynthBtn active={gameMode} ledColor="red" onClick={onGameToggle} />
-      </Group>
-
-      <Divider />
-
-      {/* ── TEMPO knob ── */}
-      <DiamondKnob
-        label="TEMPO"
-        value={tempo}
-        min={40} max={240}
-        onChange={onTempoChange}
-      />
-
-      <Divider />
-
-      {/* ── METRO ── */}
-      <Group label="METRO">
-        <SynthBtn active={metronome} ledColor="red" onClick={onMetronomeToggle} />
-      </Group>
-
-      <Divider />
-
-      {/* ── REC — PLAY ── */}
-      <Group label="REC — PLAY">
-        <SynthBtn label="REC"  active={isRecording} ledColor="red"  onClick={onRecordToggle} />
-        <SynthBtn label="PLAY" active={isPlaying}   ledColor="blue" onClick={onPlayToggle} />
-      </Group>
+        <div className="ctrl-divider" />
+        <Section label="MUTE">
+          <Btn label={muted ? "🔇" : "🔊"} active={muted} color="red" onClick={onMuteToggle} />
+        </Section>
+      </div>
 
     </div>
   );

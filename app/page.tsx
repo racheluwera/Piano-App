@@ -17,9 +17,8 @@ export default function Home() {
   const [viewingSong, setViewingSong] = useState<Song | null>(null);
 
   const {
-    config, loading,
-    playNote, setVolume, setReverb,
-    octave, setOctave,
+    config, loading, samplesLoaded,
+    noteOn, noteOff,
     sustain, setSustain,
     instrument, setInstrument,
     activeNotes,
@@ -35,10 +34,12 @@ export default function Home() {
     gameMode,       setGameMode,
     songsMode,      setSongsMode,
     isPlaying,      togglePlayback,
+    volume,      setVolume,
+    reverbAmt,   setReverb,
+    tone,        setTone,
+    velocitySens, setVelocitySens,
+    muted,       toggleMute,
   } = usePiano();
-
-  const [volumeVal, setVolumeVal] = useState(0);
-  const [reverbVal, setReverbVal] = useState(0);
 
   const lastNote = Array.from(activeNotes).at(-1) ?? "PLAY";
 
@@ -131,6 +132,11 @@ export default function Home() {
                 isAutoPlay={isAutoPlay}
                 gameMode={gameMode}
                 songsMode={songsMode}
+                volume={volume}
+                reverbAmt={reverbAmt}
+                tone={tone}
+                velocitySens={velocitySens}
+                muted={muted}
                 onSustainToggle={() => setSustain(!sustain)}
                 onInstrumentChange={(i) => setInstrument(i as never)}
                 onNotesToggle={() => setShowNoteLabels(!showNoteLabels)}
@@ -145,6 +151,11 @@ export default function Home() {
                 onAutoToggle={() => setIsAutoPlay(!isAutoPlay)}
                 onGameToggle={() => setGameMode(!gameMode)}
                 onSongsToggle={() => setSongsMode(!songsMode)}
+                onVolumeChange={setVolume}
+                onReverbChange={setReverb}
+                onToneChange={setTone}
+                onVelocityChange={setVelocitySens}
+                onMuteToggle={toggleMute}
               />
 
               {/* Model badge row */}
@@ -152,13 +163,21 @@ export default function Home() {
                 <span className="model-name">A-23</span>
                 <span className="model-sub">Virtual Piano</span>
                 <div style={{ flex: 1 }} />
+                {instrument === "piano" && !samplesLoaded && (
+                  <span style={{
+                    color: "#ffcc66", fontSize: 11, fontWeight: 700,
+                    letterSpacing: "0.08em", textTransform: "uppercase",
+                  }}>
+                    Loading real piano samples…
+                  </span>
+                )}
                 <NoteDisplay activeNotes={activeNotes} />
               </div>
 
               {/* Keyboard */}
               <Keyboard
-                octave={octave}
-                onPlay={playNote}
+                onNoteOn={noteOn}
+                onNoteOff={noteOff}
                 activeNotes={activeNotes}
                 showNoteLabels={showNoteLabels}
                 showKeyHints={showKeyHints}

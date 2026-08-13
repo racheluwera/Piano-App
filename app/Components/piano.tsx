@@ -55,7 +55,8 @@ export default function Piano() {
       key={key.note}
       note={key.note}
       label={key.label}
-      onPlay={playNote}
+      onNoteOn={playNote}
+      onNoteOff={() => {}}
     />
   ))}
 </div>

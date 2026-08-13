@@ -1,55 +1,60 @@
 "use client";
 import { useRef, useEffect, useCallback, useState } from "react";
 import * as Tone from "tone";
-import { createInstrument } from "../lib/audio";
+import {
+  createInstrument, onPianoSamplesLoaded,
+  setMasterVolume, setReverbAmount, setToneBrightness, setMuted, velocityGain,
+} from "../lib/audio";
 import { fetchPianoConfig } from "../lib/fetcher";
 import type { PianoConfig } from "../lib/fetcher";
 import type { Octave, InstrumentType } from "../lib/constants";
 
-export type ScaleType = "chromatic" | "major" | "minor" | "pentatonic";
+export type ScaleType   = "chromatic" | "major" | "minor" | "pentatonic";
 export type MappingType = "max" | "real";
 
-const SCALE_INTERVALS: Record<ScaleType, number[]> = {
-  chromatic:  [0,1,2,3,4,5,6,7,8,9,10,11],
-  major:      [0,2,4,5,7,9,11],
-  minor:      [0,2,3,5,7,8,10],
-  pentatonic: [0,2,4,7,9],
-};
-
 export function usePiano() {
-  const [config, setConfig]       = useState<PianoConfig | null>(null);
-  const [loading, setLoading]     = useState(true);
+  const [config, setConfig]               = useState<PianoConfig | null>(null);
+  const [loading, setLoading]             = useState(true);
+  const [samplesLoaded, setSamplesLoaded] = useState(false);
 
-  // core
+  // ── core ──────────────────────────────────────────────────────────────────
   const [octave, setOctave]           = useState<Octave>(4);
   const [instrument, setInstrument]   = useState<InstrumentType>("piano");
   const [sustain, setSustain]         = useState(false);
   const [activeNotes, setActiveNotes] = useState<Set<string>>(new Set());
 
-  // new settings
+  // ── display / keyboard settings ───────────────────────────────────────────
   const [showNoteLabels, setShowNoteLabels] = useState(true);
-  const [showKeyHints, setShowKeyHints]     = useState(true);
-  const [scale, setScale]                   = useState<ScaleType>("chromatic");
-  const [transpose, setTranspose]           = useState(0);       // semitones -12..+12
-  const [mapping, setMapping]               = useState<MappingType>("max");
-  const [metronome, setMetronome]           = useState(false);
-  const [tempo, setTempo]                   = useState(120);
-  const [isRecording, setIsRecording]       = useState(false);
-  const [isAutoPlay, setIsAutoPlay]         = useState(false);
-  const [gameMode, setGameMode]             = useState(false);
-  const [songsMode, setSongsMode]           = useState(false);
-  const [recorded, setRecorded]             = useState<{note:string; time:number}[]>([]);
-  const [isPlaying, setIsPlaying]           = useState(false);
+  const [showKeyHints,   setShowKeyHints]   = useState(true);
+  const [scale,          setScale]          = useState<ScaleType>("chromatic");
+  const [transpose,      setTranspose]      = useState(0);
+  const [mapping,        setMapping]        = useState<MappingType>("max");
+  const [metronome,      setMetronome]      = useState(false);
+  const [tempo,          setTempo]          = useState(120);
+  const [isRecording,    setIsRecording]    = useState(false);
+  const [isAutoPlay,     setIsAutoPlay]     = useState(false);
+  const [gameMode,       setGameMode]       = useState(false);
+  const [songsMode,      setSongsMode]      = useState(false);
+  const [recorded,       setRecorded]       = useState<{ note: string; time: number }[]>([]);
+  const [isPlaying,      setIsPlaying]      = useState(false);
 
-  const instrumentRef = useRef<Tone.PolySynth | Tone.Synth | null>(null);
-  const volumeRef     = useRef<Tone.Volume | null>(null);
-  const reverbRef     = useRef<Tone.Reverb | null>(null);
+  // ── audio quality settings ────────────────────────────────────────────────
+  const [volume,      setVolumeState]   = useState(-6);   // dB  −40..0
+  const [reverbAmt,   setReverbAmt]     = useState(0.18); // 0..1
+  const [tone,        setToneState]     = useState(0);    // −1..+1
+  const [velocitySens,setVelocitySens]  = useState(0.6);  // 0..1
+  const [muted,       setMutedState]    = useState(false);
+
+  // ── refs ──────────────────────────────────────────────────────────────────
+  const instrumentRef = useRef<Tone.Sampler | Tone.PolySynth | null>(null);
   const metroRef      = useRef<Tone.Loop | null>(null);
   const metroSynthRef = useRef<Tone.Synth | null>(null);
   const recordStart   = useRef<number>(0);
   const playbackRef   = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const hydratedRef   = useRef(false);
+  const saveTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // fetch config
+  // ── fetch config ──────────────────────────────────────────────────────────
   useEffect(() => {
     fetchPianoConfig()
       .then((cfg) => {
@@ -61,24 +66,104 @@ export function usePiano() {
       .finally(() => setLoading(false));
   }, []);
 
-  // build audio graph
-  const buildGraph = useCallback(async () => {
-    instrumentRef.current?.dispose();
-    reverbRef.current?.dispose();
-    volumeRef.current?.dispose();
-    const vol  = new Tone.Volume(0).toDestination();
-    const rev  = new Tone.Reverb({ decay: 1.5, wet: 0 }).toDestination();
+  // ── hydrate settings from backend ─────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((res) => {
+        if (cancelled || !res?.success || !res.data) return;
+        const s = res.data as Record<string, unknown>;
+        if (typeof s.octave       === "number")  setOctave(s.octave as Octave);
+        if (typeof s.instrument   === "string")  setInstrument(s.instrument as InstrumentType);
+        if (typeof s.sustain      === "boolean") setSustain(s.sustain);
+        if (typeof s.showNoteLabels === "boolean") setShowNoteLabels(s.showNoteLabels);
+        if (typeof s.showKeyHints === "boolean") setShowKeyHints(s.showKeyHints);
+        if (typeof s.scale        === "string")  setScale(s.scale as ScaleType);
+        if (typeof s.transpose    === "number")  setTranspose(s.transpose);
+        if (typeof s.mapping      === "string")  setMapping(s.mapping as MappingType);
+        if (typeof s.metronome    === "boolean") setMetronome(s.metronome);
+        if (typeof s.tempo        === "number")  setTempo(s.tempo);
+        // audio settings
+        if (typeof s.volume       === "number")  setVolumeState(s.volume);
+        if (typeof s.reverbAmt    === "number")  setReverbAmt(s.reverbAmt);
+        if (typeof s.tone         === "number")  setToneState(s.tone);
+        if (typeof s.velocitySens === "number")  setVelocitySens(s.velocitySens);
+        if (typeof s.muted        === "boolean") setMutedState(s.muted);
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) hydratedRef.current = true; });
+    return () => { cancelled = true; };
+  }, []);
+
+  // ── persist settings (debounced 600 ms) ───────────────────────────────────
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      void fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          octave, instrument, sustain,
+          showNoteLabels, showKeyHints,
+          scale, transpose, mapping,
+          metronome, tempo,
+          volume, reverbAmt, tone, velocitySens, muted,
+        }),
+      }).catch(() => {});
+    }, 600);
+    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
+  }, [
+    octave, instrument, sustain, showNoteLabels, showKeyHints,
+    scale, transpose, mapping, metronome, tempo,
+    volume, reverbAmt, tone, velocitySens, muted,
+  ]);
+
+  // ── build instrument + track loading state ───────────────────────────────
+  useEffect(() => {
     const inst = createInstrument(instrument);
-    inst.connect(vol);
-    inst.connect(rev);
-    volumeRef.current  = vol;
-    reverbRef.current  = rev;
+    if (instrumentRef.current && instrumentRef.current !== inst) {
+      try { instrumentRef.current.dispose(); } catch { /* already disposed */ }
+    }
     instrumentRef.current = inst;
+    if (inst instanceof Tone.Sampler) {
+      // Sampler may still be loading — check immediately and also register callback
+      setSamplesLoaded(inst.loaded);
+      if (!inst.loaded) {
+        onPianoSamplesLoaded(() => setSamplesLoaded(true));
+      }
+    } else {
+      // PolySynth is always ready immediately
+      setSamplesLoaded(true);
+    }
   }, [instrument]);
 
-  useEffect(() => { buildGraph(); }, [buildGraph]);
+  // ── audio settings → audio engine ─────────────────────────────────────────
+  useEffect(() => { setMasterVolume(volume); },      [volume]);
+  useEffect(() => { setReverbAmount(reverbAmt); },   [reverbAmt]);
+  useEffect(() => { setToneBrightness(tone); },      [tone]);
+  useEffect(() => { setMuted(muted); },              [muted]);
 
-  // metronome
+  // ── setters that also update the audio engine ─────────────────────────────
+  const setVolume = useCallback((db: number) => {
+    const safe = Math.max(-40, Math.min(0, db));
+    setVolumeState(safe);
+  }, []);
+
+  const setReverb = useCallback((wet: number) => {
+    setReverbAmt(Math.max(0, Math.min(1, wet)));
+  }, []);
+
+  const setTone = useCallback((v: number) => {
+    setToneState(Math.max(-1, Math.min(1, v)));
+  }, []);
+
+  const toggleMute = useCallback(() => {
+    setMutedState((m) => !m);
+  }, []);
+
+  // ── metronome ─────────────────────────────────────────────────────────────
   useEffect(() => {
     metroRef.current?.dispose();
     metroSynthRef.current?.dispose();
@@ -105,37 +190,55 @@ export function usePiano() {
     };
   }, [metronome, tempo]);
 
-  // transpose a note by semitones
+  // ── transpose helper ──────────────────────────────────────────────────────
   const transposeNote = useCallback((note: string): string => {
     if (transpose === 0) return note;
     const midi = Tone.Frequency(note).toMidi();
     return Tone.Frequency(midi + transpose, "midi").toNote() as string;
   }, [transpose]);
 
-  const playNote = useCallback(async (note: string) => {
+  // ── noteOn / noteOff ──────────────────────────────────────────────────────
+  /**
+   * velocity: 0–1 (pointer pressure or default 0.75 for keyboard/click)
+   */
+  const noteOn = useCallback(async (note: string, velocity = 0.75) => {
     await Tone.start();
-    if (!instrumentRef.current) return;
+    const inst = instrumentRef.current;
+    if (!inst) return;
+    // Guard: Sampler buffers may not be loaded yet — skip silently instead of throwing
+    if (inst instanceof Tone.Sampler && !inst.loaded) return;
     const final = transposeNote(note);
-    instrumentRef.current.triggerAttackRelease(final, sustain ? "2n" : "8n");
+    const gain  = velocityGain(velocity, velocitySens);
+    try {
+      inst.triggerAttack(final, Tone.now(), gain);
+    } catch {
+      // Ignore stale buffer errors (e.g. note outside sampler range)
+      return;
+    }
     setActiveNotes((prev) => { const s = new Set(prev); s.add(note); return s; });
-    setTimeout(() => {
-      setActiveNotes((prev) => { const s = new Set(prev); s.delete(note); return s; });
-    }, sustain ? 500 : 200);
-    // record
     if (isRecording) {
       setRecorded((prev) => [...prev, { note, time: Date.now() - recordStart.current }]);
     }
-  }, [sustain, transposeNote, isRecording]);
+  }, [transposeNote, velocitySens, isRecording]);
 
-  const setVolume = useCallback((db: number) => {
-    if (volumeRef.current) volumeRef.current.volume.value = db;
-  }, []);
+  const noteOff = useCallback((note: string) => {
+    const inst = instrumentRef.current;
+    if (!inst) return;
+    if (inst instanceof Tone.Sampler && !inst.loaded) return;
+    const final = transposeNote(note);
+    try {
+      inst.triggerRelease(final, Tone.now() + 0.01);
+    } catch { /* ignore */ }
+    setActiveNotes((prev) => { const s = new Set(prev); s.delete(note); return s; });
+  }, [transposeNote]);
 
-  const setReverb = useCallback((wet: number) => {
-    if (reverbRef.current) reverbRef.current.wet.value = wet;
-  }, []);
+  // playNote: used for playback / keyboard (fixed velocity)
+  const playNote = useCallback(async (note: string) => {
+    await noteOn(note, 0.75);
+    setTimeout(() => noteOff(note), sustain ? 900 : 250);
+  }, [noteOn, noteOff, sustain]);
 
-  // start / stop recording
+  // ── recording ─────────────────────────────────────────────────────────────
   const toggleRecording = useCallback(() => {
     if (!isRecording) {
       setRecorded([]);
@@ -144,7 +247,7 @@ export function usePiano() {
     setIsRecording((v) => !v);
   }, [isRecording]);
 
-  // playback recorded notes
+  // ── playback ──────────────────────────────────────────────────────────────
   const togglePlayback = useCallback(() => {
     if (isPlaying) {
       playbackRef.current.forEach(clearTimeout);
@@ -161,26 +264,41 @@ export function usePiano() {
     setTimeout(() => setIsPlaying(false), last.time + 600);
   }, [isPlaying, recorded, playNote]);
 
-  // keyboard listener
+  // ── keyboard listener ─────────────────────────────────────────────────────
   useEffect(() => {
     if (!config) return;
+    const held = new Set<string>();
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.repeat) return;
       const base = config.keyMap[e.key.toLowerCase()];
-      if (base) playNote(`${base}${octave}`);
+      if (!base) return;
+      const note = `${base}${octave}`;
+      if (held.has(note)) return;
+      held.add(note);
+      noteOn(note, 0.75);
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      const base = config.keyMap[e.key.toLowerCase()];
+      if (!base) return;
+      const note = `${base}${octave}`;
+      held.delete(note);
+      noteOff(note);
     };
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [config, playNote, octave]);
+    window.addEventListener("keyup",   handleKeyUp);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup",   handleKeyUp);
+    };
+  }, [config, noteOn, noteOff, octave]);
 
   return {
-    config, loading,
-    playNote, setVolume, setReverb,
+    config, loading, samplesLoaded,
+    playNote, noteOn, noteOff,
     octave, setOctave,
     sustain, setSustain,
     instrument, setInstrument,
     activeNotes,
-    // new
     showNoteLabels, setShowNoteLabels,
     showKeyHints,   setShowKeyHints,
     scale,          setScale,
@@ -194,5 +312,11 @@ export function usePiano() {
     songsMode,      setSongsMode,
     isPlaying,      togglePlayback,
     recorded,
+    // audio quality
+    volume,      setVolume,
+    reverbAmt,   setReverb,
+    tone,        setTone,
+    velocitySens, setVelocitySens,
+    muted,       toggleMute,
   };
 }

@@ -26,6 +26,12 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: [],
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "100mb",
+    },
+  },
   headers: async () => [
     // Security headers on all routes
     { source: "/(.*)", headers: securityHeaders },

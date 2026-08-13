@@ -5,7 +5,7 @@ import {
 } from "../../lib/constants";
 
 // Allow any origin to fetch this API
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 function corsHeaders() {
   return {

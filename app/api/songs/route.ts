@@ -3,7 +3,7 @@ import { prisma } from "../../lib/prisma";
 
 export const maxDuration = 60;
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
 
 export function corsHeaders() {
   return {
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
 
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { success: false, error: "PDF file exceeds the 10MB limit" },
+        { success: false, error: "PDF file exceeds the 100 MB limit" },
         { status: 413, headers: corsHeaders() }
       );
     }

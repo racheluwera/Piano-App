@@ -21,3 +21,12 @@ model Song {
   @@index([title])
   @@map("songs")
 }
+
+model PianoSettings {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  key       String   @unique
+  data      Json
+  updatedAt DateTime @updatedAt
+
+  @@map("piano_settings")
+}
