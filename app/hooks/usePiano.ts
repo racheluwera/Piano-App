@@ -201,8 +201,13 @@ export function usePiano() {
   /**
    * velocity: 0–1 (pointer pressure or default 0.75 for keyboard/click)
    */
+  const toneStarted = useRef(false);
+
   const noteOn = useCallback(async (note: string, velocity = 0.75) => {
-    await Tone.start();
+    if (!toneStarted.current) {
+      await Tone.start();
+      toneStarted.current = true;
+    }
     const inst = instrumentRef.current;
     if (!inst) return;
     // Guard: Sampler buffers may not be loaded yet — skip silently instead of throwing
