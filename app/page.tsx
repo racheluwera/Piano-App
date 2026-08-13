@@ -56,7 +56,7 @@ export default function Home() {
       {/* ── Top navbar ── */}
       <nav className="navbar">
         <div className="navbar-logo">
-          <div className="navbar-logo-box">🎹</div>
+          <div className="navbar-logo-box"></div>
           <div style={{ lineHeight: 1.1 }}>
             <div>RECURSIVE</div>
             <div>ARTS</div>
