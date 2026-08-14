@@ -26,7 +26,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: [],
+  serverExternalPackages: ["tone"],
   experimental: {
     serverActions: {
       bodySizeLimit: "100mb",
