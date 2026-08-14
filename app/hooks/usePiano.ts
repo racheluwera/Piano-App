@@ -128,14 +128,15 @@ export function usePiano() {
     }
     instrumentRef.current = inst;
     if (inst instanceof Tone.Sampler) {
-      // Sampler may still be loading — check immediately and also register callback
-      setSamplesLoaded(inst.loaded);
-      if (!inst.loaded) {
-        onPianoSamplesLoaded(() => setSamplesLoaded(true));
+      if (inst.loaded) {
+        // Already loaded (e.g. cached sampler) — schedule outside effect body
+        const t = setTimeout(() => setSamplesLoaded(true), 0);
+        return () => clearTimeout(t);
       }
+      onPianoSamplesLoaded(() => setSamplesLoaded(true));
     } else {
-      // PolySynth is always ready immediately
-      setSamplesLoaded(true);
+      const t = setTimeout(() => setSamplesLoaded(true), 0);
+      return () => clearTimeout(t);
     }
   }, [instrument]);
 

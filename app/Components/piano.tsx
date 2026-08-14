@@ -1,7 +1,8 @@
-"use client"
+"use client";
 import { useEffect, useRef } from "react";
 import * as Tone from "tone";
 import PianoKey from "./pianoKey";
+
 const whiteKeys = [
   { note: "C4", label: "Do" },
   { note: "D4", label: "Re" },
@@ -10,14 +11,6 @@ const whiteKeys = [
   { note: "G4", label: "Sol" },
   { note: "A4", label: "La" },
   { note: "B4", label: "Ti" },
-];
-
-const blackKeys = [
-  { note: "C#4" },
-  { note: "D#4" },
-  { note: "F#4" },
-  { note: "G#4" },
-  { note: "A#4" },
 ];
 
 const keyMap: Record<string, string> = {
@@ -33,32 +26,27 @@ export default function Piano() {
     if (!synthRef.current) synthRef.current = new Tone.Synth().toDestination();
     synthRef.current.triggerAttackRelease(note, "8n");
   }
+
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       const note = keyMap[event.key.toLowerCase()];
-      if (note) {
-        playNote(note);
-      }
+      if (note) playNote(note);
     }
-
     window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   return (
-   <div className="relative flex">
-  {whiteKeys.map((key) => (
-    <PianoKey
-      key={key.note}
-      note={key.note}
-      label={key.label}
-      onNoteOn={playNote}
-      onNoteOff={() => {}}
-    />
-  ))}
-</div>
+    <div className="relative flex">
+      {whiteKeys.map((key) => (
+        <PianoKey
+          key={key.note}
+          note={key.note}
+          label={key.label}
+          onNoteOn={playNote}
+          onNoteOff={() => {}}
+        />
+      ))}
+    </div>
   );
 }

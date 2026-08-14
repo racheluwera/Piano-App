@@ -10,11 +10,16 @@ export default function NoteDisplay({ activeNotes }: Props) {
     const notes = Array.from(activeNotes);
     if (!notes.length) return;
     const tagged = notes.map((n) => `${n}__${Date.now()}`);
-    setShown((prev) => [...prev.slice(-4), ...tagged]);
-    const t = setTimeout(() => {
+    const add = setTimeout(() => {
+      setShown((prev) => [...prev.slice(-4), ...tagged]);
+    }, 0);
+    const remove = setTimeout(() => {
       setShown((prev) => prev.filter((x) => !tagged.includes(x)));
     }, 800);
-    return () => clearTimeout(t);
+    return () => {
+      clearTimeout(add);
+      clearTimeout(remove);
+    };
   }, [activeNotes]);
 
   return (
