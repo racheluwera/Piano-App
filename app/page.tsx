@@ -7,6 +7,7 @@ import Welcome from "./Components/welcome";
 import NoteDisplay from "./Components/noteDisplay";
 import SongsPanel from "./Components/songsPanel";
 import PdfViewer from "./Components/pdfViewer";
+import VideosPanel from "./Components/videosPanel";
 import type { Song } from "./Components/songsPanel";
 
 const NAV_LINKS = ["PLAY", "SONGS", "VIDEOS", "ABOUT", "LEARN"];
@@ -15,6 +16,7 @@ export default function Home() {
   const [started, setStarted]   = useState(false);
   const [activeNav, setActiveNav] = useState("PLAY");
   const [viewingSong, setViewingSong] = useState<Song | null>(null);
+  const [videosOpen, setVideosOpen] = useState(false);
 
   const {
     config, loading, samplesLoaded,
@@ -53,6 +55,8 @@ export default function Home() {
         onView={(song) => { setViewingSong(song); setSongsMode(false); }}
       />
 
+      <VideosPanel open={videosOpen} onClose={() => setVideosOpen(false)} />
+
       {/* ── Top navbar ── */}
       <nav className="navbar">
         <div className="navbar-logo">
@@ -78,6 +82,7 @@ export default function Home() {
               e.preventDefault();
               setActiveNav(link);
               if (link === "SONGS") setSongsMode(true);
+              if (link === "VIDEOS") setVideosOpen(true);
             }}
           >
             {link}

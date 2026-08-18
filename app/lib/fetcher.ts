@@ -17,7 +17,6 @@ export type PianoConfig = {
     defaultSustain: boolean;
   };
 };
-
 export async function fetchPianoConfig(): Promise<PianoConfig> {
   const res = await fetch("/api/piano");
   if (!res.ok) throw new Error("Failed to load piano config");

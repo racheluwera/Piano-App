@@ -18,9 +18,10 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self' https://fonts.gstatic.com",
       "connect-src 'self'",
-      "img-src 'self' data:",
+      "img-src 'self' data: https://img.youtube.com https://i.ytimg.com",
       "media-src 'self' blob:",
       "worker-src 'self' blob:",
+      "frame-src https://www.youtube.com https://youtube.com",
     ].join("; "),
   },
 ];
