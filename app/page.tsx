@@ -62,13 +62,11 @@ export default function Home() {
         <div className="navbar-logo">
           <div className="navbar-logo-box"></div>
           <div style={{ lineHeight: 1.1 }}>
-            <div>RECURSIVE</div>
-            <div>ARTS</div>
+          
           </div>
         </div>
         <span className="navbar-title">Virtual Piano</span>
         <span className="navbar-auth">
-          <a href="#">Log In</a> or <a href="#">Register</a>
         </span>
       </nav>
 
