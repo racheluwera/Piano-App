@@ -47,7 +47,7 @@ html, body {
   align-items: center;
   justify-content: space-between;
   padding: 0 32px;
-  height: 52px;
+  height: 56px;
   position: sticky;
   top: 0;
   z-index: 50;
@@ -55,7 +55,7 @@ html, body {
 .navbar-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   color: #fff;
   font-size: 0.8rem;
   font-weight: 700;
@@ -63,10 +63,10 @@ html, body {
   text-transform: uppercase;
 }
 .navbar-logo-box {
-  width: 32px; height: 32px;
-  background: #333;
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, #333 0%, #222 100%);
   border: 1px solid #555;
-  border-radius: 4px;
+  border-radius: 6px;
   display: flex; align-items: center; justify-content: center;
   font-size: 16px;
 }
@@ -80,32 +80,52 @@ html, body {
 .navbar-auth {
   color: #aaa;
   font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
-.navbar-auth a { color: #fff; text-decoration: none; font-weight: 600; }
+.navbar-auth a {
+  color: #d4a843;
+  text-decoration: none;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: color 150ms;
+}
 .navbar-auth a:hover { text-decoration: underline; }
 
 /* ── Nav links bar ── */
 .navlinks {
-  background: #f0f0f0;
-  border-bottom: 1px solid #ccc;
+  background: linear-gradient(180deg, #f8f8f8 0%, #f0f0f0 100%);
+  border-bottom: 1px solid #d0d0d0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 48px;
-  height: 44px;
+  gap: 0;
+  height: 46px;
 }
 .navlinks a {
-  color: #222;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  color: #555;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   text-decoration: none;
-  padding: 4px 0;
+  padding: 0 20px;
+  height: 100%;
+  display: flex;
+  align-items: center;
   border-bottom: 2px solid transparent;
-  transition: border-color 150ms;
+  transition: color 150ms, border-color 150ms, background 150ms;
 }
-.navlinks a:hover, .navlinks a.active { border-bottom-color: #222; }
+.navlinks a:hover {
+  color: #222;
+  background: rgba(0,0,0,0.03);
+}
+.navlinks a.active {
+  color: #1a1a1a;
+  border-bottom-color: #c0392b;
+  font-weight: 700;
+}
 
 /* ── Synth body ── */
 .synth-body {
@@ -526,7 +546,8 @@ html, body {
 
 /* ── Responsive ── */
 @media (max-width: 640px) {
-  .navlinks { gap: 20px; }
+  .navlinks { gap: 0; }
+  .navlinks a { padding: 0 12px; font-size: 0.72rem; letter-spacing: 0.1em; }
   .wood-cap { width: 14px; }
   .ctrl-panel { padding: 8px 10px 6px; }
   .ctrl-btn { min-width: 30px; padding: 4px 5px 3px; }

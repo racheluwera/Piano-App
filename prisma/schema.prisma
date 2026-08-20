@@ -4,9 +4,7 @@ generator client {
 
 datasource db {
   provider = "mongodb"
- 
 }
-
 model Song {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   title     String

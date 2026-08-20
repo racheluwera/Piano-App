@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { usePiano } from "./hooks/usePiano";
 import Keyboard from "./Components/keyboard";
 import Controls from "./Components/controls";
@@ -7,16 +8,15 @@ import Welcome from "./Components/welcome";
 import NoteDisplay from "./Components/noteDisplay";
 import SongsPanel from "./Components/songsPanel";
 import PdfViewer from "./Components/pdfViewer";
-import VideosPanel from "./Components/videosPanel";
 import type { Song } from "./Components/songsPanel";
 
 const NAV_LINKS = ["PLAY", "SONGS", "VIDEOS", "ABOUT", "LEARN"];
 
 export default function Home() {
+  const router = useRouter();
   const [started, setStarted]   = useState(false);
   const [activeNav, setActiveNav] = useState("PLAY");
   const [viewingSong, setViewingSong] = useState<Song | null>(null);
-  const [videosOpen, setVideosOpen] = useState(false);
 
   const {
     config, loading, samplesLoaded,
@@ -55,8 +55,6 @@ export default function Home() {
         onView={(song) => { setViewingSong(song); setSongsMode(false); }}
       />
 
-      <VideosPanel open={videosOpen} onClose={() => setVideosOpen(false)} />
-
       {/* ── Top navbar ── */}
       <nav className="navbar">
         <div className="navbar-logo">
@@ -78,9 +76,11 @@ export default function Home() {
             className={activeNav === link ? "active" : ""}
             onClick={(e) => {
               e.preventDefault();
+              if (link === "ABOUT") { router.push("/about"); return; }
+              if (link === "LEARN") { router.push("/learn"); return; }
+              if (link === "VIDEOS") { router.push("/videos"); return; }
               setActiveNav(link);
               if (link === "SONGS") setSongsMode(true);
-              if (link === "VIDEOS") setVideosOpen(true);
             }}
           >
             {link}
